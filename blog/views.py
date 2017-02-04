@@ -3,6 +3,7 @@ from django.utils import timezone
 from .models import Post
 from .forms import PostForm
 from django.shortcuts import redirect
+from django.core.urlresolvers import reverse
 
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
@@ -15,6 +16,7 @@ def post_detail(request, pk):
     
 
 def post_new(request):
+    if request.user.is_authenticated():
         if request.method == "POST":
             form = PostForm(request.POST)
             if form.is_valid():
@@ -26,9 +28,12 @@ def post_new(request):
         else:
             form = PostForm()
         return render(request, 'blog/post_edit.html', {'form': form})
+    else:
+        return redirect(reverse("post_list"))
 
     
 def post_edit(request, pk):
+    if request.user.is_authenticated():
         post = get_object_or_404(Post, pk=pk)
         if request.method == "POST":
             form = PostForm(request.POST, instance=post)
@@ -41,5 +46,7 @@ def post_edit(request, pk):
         else:
             form = PostForm(instance=post)
         return render(request, 'blog/post_edit.html', {'form': form})
+    else:
+        return redirect(reverse("post_list"))
 
     
